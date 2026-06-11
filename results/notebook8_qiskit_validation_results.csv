@@ -1,0 +1,4 @@
+method,energy_estimate,error_vs_exact
+Exact classical diagonalization,-2.1540659228538015,0.0
+Qiskit fixed ansatz statevector,0.49708450311841124,2.6511504259722125
+Qiskit VQE-style statevector,-2.1540659204691632,2.384638264629757e-09

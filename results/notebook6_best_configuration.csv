@@ -1,0 +1,2 @@
+n_sites,n_defects,defect_density,defect_strength,arrangement_mode,defect_sites,mean_defect_distance,clustering_index,energy_gap,energy_bandwidth,mean_ipr,max_ipr,transport_descriptor,trial
+40,3,0.075,0.5296153168126582,spread,0;19;39,19.5,0.04878048780487805,0.154006224162768,4.05140368207784,0.041441228175574066,0.13643614335466653,0.8957032172971113,1637

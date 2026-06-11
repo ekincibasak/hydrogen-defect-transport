@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this code in your research, please cite it as below."
+type: software
+title: "Defect-Induced Localization and Transport in 1D Tight-Binding Models"
+authors:
+  - family-names: Ekinci
+    given-names: Başak
+    email: baekinci@gmail.com
+version: 0.1.0
+date-released: "2026-05-30"
+url: "https://github.com/ekincibasak/hydrogen-defect-transport"
+license: MIT
+abstract: >
+  Computational pipeline for studying how hydrogen-like point defects
+  modify electronic localization and transport in one-dimensional
+  tight-binding models. Includes exact diagonalization, machine learning
+  prediction of transport descriptors, constrained optimization of defect
+  configurations, and Qiskit-based validation on small representative
+  Hamiltonians.
+keywords:
+  - tight-binding
+  - anderson localization
+  - inverse participation ratio
+  - defect physics
+  - machine learning
+  - quantum computing
+  - Qiskit
+  - Floquet theory
+  - Lindblad equation

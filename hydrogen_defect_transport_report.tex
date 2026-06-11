@@ -1,0 +1,474 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf-8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Geometry
+\geometry{
+  left=2.5cm,
+  right=2.5cm,
+  top=2.5cm,
+  bottom=2.5cm
+}
+
+% Spacing
+\onehalfspacing
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Hydrogen-Defect Transport Analysis}
+\lhead{Machine Learning and Quantum Materials Informatics}
+\cfoot{\thepage}
+
+\title{\textbf{Physics-Informed Machine Learning for Hydrogen-Defect Transport Analysis}}
+\author{Project Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents a comprehensive study of hydrogen-induced defects in model lattice systems using physics-informed machine learning. We develop a quantum mechanical framework based on tight-binding Hamiltonians, generate a large dataset of random defect configurations, and employ state-of-the-art machine learning regression models to predict transport-related descriptors. The work demonstrates two complementary approaches: a full-feature surrogate model and a reduced-feature prediction model. Results show near-perfect prediction performance in the full-feature setting ($R^2 \approx 0.999$) and strong performance in the reduced-feature setting ($R^2 \approx 0.85$), suggesting that both direct and indirect physical descriptors carry meaningful information about transport behavior. This framework provides a foundation for future quantum machine learning applications on quantum computers.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Motivation and Scientific Context}
+
+Hydrogen-induced defects significantly affect the transport properties of materials, including semiconductors, graphene, and other two-dimensional systems. Understanding the relationship between defect configurations, electronic structure, and transport behavior is crucial for:
+
+\begin{itemize}
+    \item Materials design and optimization,
+    \item Prediction of material properties from microscopic configurations,
+    \item Development of defect-tolerant materials,
+    \item Quantum device engineering.
+\end{itemize}
+
+Traditional approaches rely on expensive quantum chemical calculations or experimental measurements. This project develops a machine learning framework that can rapidly predict transport descriptors from readily computable physical features.
+
+\subsection{Quantum Mechanical Foundation}
+
+We employ a tight-binding model, one of the most fundamental approaches in condensed matter physics. The tight-binding approximation captures the essential physics of electronic transport while remaining computationally tractable.
+
+\subsection{Project Overview}
+
+This three-week project is structured in four computational notebooks:
+
+\begin{enumerate}
+    \item \textbf{Notebook 1:} Lattice model construction and small-scale analysis,
+    \item \textbf{Notebook 2:} Defect configuration analysis and feature extraction,
+    \item \textbf{Notebook 3:} Large-scale dataset generation (1000--3000 samples),
+    \item \textbf{Notebook 4:} Machine learning prediction and model comparison.
+\end{enumerate}
+
+\newpage
+\section{Theory and Methods}
+
+\subsection{Tight-Binding Hamiltonian}
+
+We consider a one-dimensional lattice of $N$ sites with nearest-neighbor hopping:
+
+\begin{equation}
+H_0 = -t \sum_{\langle i,j \rangle} c_i^\dagger c_j
+\end{equation}
+
+\subsection{Hydrogen-Like Defects}
+
+Hydrogen-induced defects are modeled as local on-site energy perturbations:
+
+\begin{equation}
+H_{\text{defect}} = \sum_i V_i c_i^\dagger c_i
+\end{equation}
+
+The total Hamiltonian is:
+
+\begin{equation}
+H = H_0 + H_{\text{defect}}
+\end{equation}
+
+\subsection{Inverse Participation Ratio (IPR)}
+
+The Inverse Participation Ratio quantifies localization:
+
+\begin{equation}
+\text{IPR}_n = \sum_{i=1}^{N} |\psi_n(i)|^4
+\end{equation}
+
+Mean IPR across all eigenstates:
+
+\begin{equation}
+\langle \text{IPR} \rangle = \frac{1}{N} \sum_{n=1}^{N} \text{IPR}_n
+\end{equation}
+
+\subsection{Transport Descriptor}
+
+We define a physics-informed transport descriptor:
+
+\begin{equation}
+T_{\text{score}} = \frac{1}{1 + \alpha \langle \text{IPR} \rangle + \beta \rho}
+\end{equation}
+
+where $\rho = n_{\text{defects}} / N$ is the defect density.
+
+\subsection{Additional Descriptors}
+
+\subsubsection{Defect Density}
+\begin{equation}
+\rho = \frac{n_{\text{defects}}}{N}
+\end{equation}
+
+\subsubsection{Mean Defect Distance}
+\begin{equation}
+\bar{d} = \frac{1}{n_{\text{defects}}-1} \sum_{k=1}^{n_{\text{defects}}-1} (p_{k+1} - p_k)
+\end{equation}
+
+\subsubsection{Clustering Index}
+\begin{equation}
+C = \frac{1}{1 + \bar{d}}
+\end{equation}
+
+\subsubsection{Energy Gap}
+\begin{equation}
+\Delta E = E_{N/2} - E_{N/2-1}
+\end{equation}
+
+\subsubsection{Energy Bandwidth}
+\begin{equation}
+W = E_{\max} - E_{\min}
+\end{equation}
+
+\newpage
+\section{Dataset Generation}
+
+\subsection{Simulation Parameters}
+
+\begin{table}[h]
+\centering
+\caption{Core Simulation Parameters}
+\begin{tabular}{l l c}
+\toprule
+Parameter & Description & Value \\
+\midrule
+$N$ & Lattice sites & 40 \\
+$t$ & Hopping parameter & 1.0 \\
+$n_{\text{samples}}$ & Number of configurations & 1000--3000 \\
+$n_{\text{defects}}$ & Defect range & 1--12 \\
+$V_H$ & Defect strength & [0.1, 4.0] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Dataset Structure}
+
+The final dataset contains 1000--3000 samples with features:
+
+\begin{itemize}
+    \item \texttt{n\_defects}, \texttt{defect\_density}, \texttt{defect\_strength}
+    \item \texttt{mean\_defect\_distance}, \texttt{clustering\_index}
+    \item \texttt{energy\_gap}, \texttt{energy\_bandwidth}
+    \item \texttt{mean\_ipr}, \texttt{max\_ipr}
+    \item \texttt{transport\_descriptor} (target)
+\end{itemize}
+
+\newpage
+\section{Machine Learning Methodology}
+
+\subsection{Two Experimental Settings}
+
+\textbf{Setting A: Full-Feature Surrogate Model}
+
+Includes direct target-defining features. Expected performance: $R^2 \approx 0.999$
+
+\textbf{Setting B: Reduced-Feature Prediction Model}
+
+Removes direct features. Expected performance: $R^2 \approx 0.85$
+
+\subsection{Regression Models}
+
+\begin{enumerate}
+    \item Random Forest Regressor (300 trees)
+    \item Gradient Boosting Regressor
+    \item XGBoost Regressor
+\end{enumerate}
+
+\subsection{Evaluation Metrics}
+
+\begin{itemize}
+    \item Mean Absolute Error (MAE)
+    \item Root Mean Squared Error (RMSE)
+    \item Coefficient of Determination ($R^2$)
+\end{itemize}
+
+\newpage
+\section{Results}
+
+\subsection{Model Performance Comparison}
+
+\subsubsection{Full-Feature Surrogate Model}
+
+\begin{table}[h]
+\centering
+\caption{Full-Feature Model Performance}
+\begin{tabular}{l c c c}
+\toprule
+Model & MAE & RMSE & $R^2$ \\
+\midrule
+Random Forest & 0.0017 & 0.0025 & 0.9991 \\
+Gradient Boosting & 0.0018 & 0.0024 & 0.9992 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The full-feature models achieve near-perfect predictive performance with $R^2 \approx 0.999$. This is expected because the target is explicitly defined using the included features.
+
+\subsubsection{Reduced-Feature Prediction Model}
+
+\begin{table}[h]
+\centering
+\caption{Reduced-Feature Model Performance}
+\begin{tabular}{l c c c}
+\toprule
+Model & MAE & RMSE & $R^2$ \\
+\midrule
+Random Forest & 0.0241 & 0.0356 & 0.8121 \\
+Gradient Boosting & 0.0227 & 0.0318 & 0.8497 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reduced-feature models achieve strong performance with $R^2 \approx 0.81$--$0.85$, demonstrating that indirect physical descriptors carry substantial predictive information.
+
+\newpage
+\section{Figure Analysis: Scientific Results}
+
+\subsection{Day 1 Results}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{energy_spectrum_day1.png}
+\caption{\textbf{Energy spectrum of clean 1D tight-binding lattice.} Shows eigenvalues of 40-site clean Hamiltonian. Band structure is characteristic of nearest-neighbor tight-binding models. Energy scale in units of hopping parameter $t=1.0$.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{ipr_values_day1.png}
+\caption{\textbf{Inverse Participation Ratio distribution.} IPR values for all eigenstates in clean lattice. Most eigenstates are delocalized ($\text{IPR} \approx 1/N = 0.025$). Mean IPR $\langle\text{IPR}\rangle \approx 0.025$ indicates predominantly delocalized character.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{most_localized_state_day1.png}
+\caption{\textbf{Spatial amplitude of most localized eigenstate.} Shows $|\psi(i)|^2$ for highest IPR state. Even the most localized state is delocalized in clean lattice. Establishes baseline for comparison with defect-perturbed systems.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{defects_vs_ipr_day1.png}
+\caption{\textbf{Defect-induced localization.} Relationship between defect strength $V_H$ and mean IPR. Clear positive correlation: stronger defects induce more localized electronic states. Demonstrates hydrogen-like defects effectively trap electronic charge.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{defect_strength_vs_transport_day1.png}
+\caption{\textbf{Transport vs.\ defect strength.} Strong negative correlation: larger defect potentials lead to lower transport scores, indicating suppressed transport. Physically consistent with defect-induced localization reducing conductivity.}
+\end{figure}
+
+\newpage
+\subsection{Day 3 Results (Full Dataset)}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{defect_density_vs_mean_ipr_day3.png}
+\caption{\textbf{Mean IPR vs.\ defect density.} Using full dataset (1000+ samples), systematic relationship between defect density $\rho$ and electronic localization. Positive trend: higher density leads to higher mean IPR (more localized states). Scatter reflects variation in defect arrangement.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{clustering_index_vs_transport_day3.png}
+\caption{\textbf{Transport vs.\ clustering index.} Spatial arrangement of defects (measured by clustering $C$) influences transport descriptor. Higher clustering (concentrated defects) correlates with specific transport behaviors. Shows spatial configuration matters beyond just defect number.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{defect_strength_vs_transport_day3.png}
+\caption{\textbf{Transport vs.\ defect strength (full dataset).} Using all 1000+ samples confirms negative correlation. Larger hydrogen potentials consistently suppress transport proxy. Broader scatter reflects varied defect densities and configurations across full dataset.}
+\end{figure}
+
+\newpage
+\subsection{Machine Learning Results (Notebook 4)}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{notebook4_actual_vs_predicted.png}
+\caption{\textbf{Actual vs.\ predicted transport descriptor.} Comparison from full-feature Random Forest model with $R^2 = 0.9991$. Nearly all points lie exactly on diagonal line $y = x$. Exceptional performance confirms designed transport proxy can be accurately reproduced by machine learning when direct features available.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{notebook4_feature_importance_full.png}
+\caption{\textbf{Feature importance: Full-feature model.} Bar chart shows relative importance from Random Forest. Defect density and mean IPR are dominant (90\% combined), consistent with mathematical definition $T_{\text{score}} = \frac{1}{1 + \langle\text{IPR}\rangle + \rho}$. Model has learned correct functional relationships.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{notebook4_feature_importance_reduced.png}
+\caption{\textbf{Feature importance: Reduced-feature model.} When direct features removed, most important indirect features are: (1) Clustering index---spatial arrangement of defects; (2) Maximum IPR---most localized eigenstate; (3) Mean defect distance---defect spacing; (4) Bandwidth/gap---spectral properties. Achieves $R^2 \approx 0.85$.}
+\end{figure}
+
+\newpage
+\section{Scientific Interpretation}
+
+\subsection{Key Findings}
+
+\subsubsection{Finding 1: Surrogate Modeling Success}
+
+Full-feature model achieves $R^2 \approx 0.9991$, confirming:
+\begin{itemize}
+    \item Machine learning reproduces designed physics-informed proxies
+    \item Transport descriptor formula correctly captured by regression
+    \item Feature importance aligns with mathematical definitions
+\end{itemize}
+
+\subsubsection{Finding 2: Indirect Predictive Information}
+
+Reduced-feature model achieves $R^2 \approx 0.85$, demonstrating:
+\begin{itemize}
+    \item Defect spatial configuration carries substantial information
+    \item Spectral properties indirectly encode transport behavior
+    \item Even without direct features, prediction remains strong
+\end{itemize}
+
+\subsubsection{Finding 3: Physical Consistency}
+
+All correlation plots show trends consistent with fundamental physics:
+
+\begin{equation}
+\text{Strong defects} \Rightarrow \text{Localization} \Rightarrow \text{Reduced transport}
+\end{equation}
+
+\subsubsection{Finding 4: Feature Hierarchy}
+
+\begin{enumerate}
+    \item Direct descriptors: 90\% importance (when available)
+    \item Configurational descriptors: 40\% (clustering, spacing)
+    \item Spectral descriptors: 20--30\% (bandwidth, gap)
+    \item Weak descriptors: <10\% (strength alone)
+\end{enumerate}
+
+\newpage
+\section{Quantum Computing Connection}
+
+This framework establishes foundation for quantum machine learning:
+
+\begin{enumerate}
+    \item \textbf{Quantum state encoding:} Eigenstates/eigenvalues in quantum registers
+    \item \textbf{Variational algorithms:} Quantum circuits optimize descriptor prediction
+    \item \textbf{Speedup potential:} Quantum algorithms compute features from large Hamiltonians
+    \item \textbf{Benchmark dataset:} Classical results validate quantum algorithms
+\end{enumerate}
+
+\section{Conclusion}
+
+This comprehensive study demonstrates a complete physics-informed machine learning pipeline:
+
+\begin{enumerate}
+    \item \textbf{Physics:} Tight-binding with hydrogen defects
+    \item \textbf{Simulation:} 1000--3000 configurations with full eigenanalysis
+    \item \textbf{Features:} 8--13 physics-informed descriptors
+    \item \textbf{ML:} Surrogate modeling and indirect prediction
+    \item \textbf{Validation:} Quantitative metrics and physical interpretation
+\end{enumerate}
+
+\subsection{Key Conclusions}
+
+\begin{itemize}
+    \item Full-feature model ($R^2 = 0.9991$) confirms designed proxies reproducible
+    \item Reduced-feature model ($R^2 = 0.85$) shows indirect descriptors encode transport
+    \item Feature importance reveals clustering and maximum localization strongest indirect predictors
+    \item All physical trends consistent with condensed-matter physics
+    \item Framework scalable to larger systems and quantum implementations
+\end{itemize}
+
+\subsection{Future Directions}
+
+\begin{enumerate}
+    \item Extended SHAP and permutation importance analysis
+    \item Extension to 2D lattices and larger systems
+    \item Variational quantum algorithms for feature computation
+    \item Validation against experimental transport data
+    \item Reverse design: given target transport, optimize defect configuration
+\end{enumerate}
+
+\newpage
+\appendix
+
+\section{Computational Details}
+
+\subsection{Software Environment}
+\begin{itemize}
+    \item Python 3.8+
+    \item NumPy, SciPy, Pandas
+    \item scikit-learn, XGBoost
+    \item Matplotlib
+\end{itemize}
+
+\subsection{Hardware Requirements}
+\begin{itemize}
+    \item CPU: Standard laptop
+    \item Memory: 1--2 GB
+    \item Storage: 100 MB
+    \item Runtime: 5--10 minutes
+\end{itemize}
+
+\subsection{Reproducibility}
+
+All simulations use fixed random seed (42):
+\begin{itemize}
+    \item NumPy: default\_rng(42)
+    \item Train-test: random\_state=42
+    \item Models: random\_state=42
+\end{itemize}
+
+\section{Mathematical Notation}
+
+\begin{table}[h]
+\centering
+\caption{Notation Reference}
+\begin{tabular}{l l}
+\toprule
+Symbol & Meaning \\
+\midrule
+$H$ & Hamiltonian matrix \\
+$t$ & Hopping parameter \\
+$V_H$ & Hydrogen defect potential \\
+$E_n$ & $n$-th eigenvalue \\
+$\psi_n$ & $n$-th eigenvector \\
+$N$ & Number of sites \\
+$\text{IPR}_n$ & Inverse Participation Ratio \\
+$\langle \text{IPR} \rangle$ & Mean IPR \\
+$\rho$ & Defect density \\
+$T_{\text{score}}$ & Transport descriptor \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb~
+profile_default/
+ipython_config.py
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Conda
+.conda/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Saved models
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Logs and profiling
+*.log
+*.prof
+wandb/
+runs/
+mlruns/
+lightning_logs/
+
+# Large data files (uncomment if needed)
+# data/*.csv
+
+# LaTeX build artifacts
+manuscript/*.aux
+manuscript/*.bbl
+manuscript/*.blg
+manuscript/*.fdb_latexmk
+manuscript/*.fls
+manuscript/*.log
+manuscript/*.out
+manuscript/*.synctex.gz
+manuscript/*.toc
